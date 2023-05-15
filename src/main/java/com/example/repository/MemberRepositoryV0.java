@@ -5,6 +5,7 @@ import com.example.domain.Member;
 import com.example.jdbc.connection.DBConnectionUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.xml.transform.Result;
 import java.sql.*;
 import java.util.NoSuchElementException;
 
@@ -17,6 +18,13 @@ import java.util.NoSuchElementException;
 @Slf4j
 public class MemberRepositoryV0 {
 
+    /**
+     * 회원저장
+     *
+     * @param member
+     * @return
+     * @throws SQLException
+     */
     public Member save(Member member) throws SQLException {
         String sql = """
                 insert into member(member_id , money) values(? , ?)
@@ -47,6 +55,13 @@ public class MemberRepositoryV0 {
 
     }
 
+    /**
+     * 회원찾기
+     *
+     * @param memberId
+     * @return
+     * @throws SQLException
+     */
     public Member findById(String memberId) throws SQLException {
         String sql = """
                 select * from member where member_Id = ?
@@ -82,6 +97,32 @@ public class MemberRepositoryV0 {
         }
     }
 
+
+    public void update(String member_id, int money) throws SQLException {
+        String sql = """
+                update member set money=? where member_id= ?
+                """;
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            con = this.getConnection();
+            pstmt = con.prepareStatement(sql);
+
+            pstmt.setInt(1, money);
+            pstmt.setString(2, member_id);
+            int resultSize = pstmt.executeUpdate();
+            log.info("resultSize : {}", resultSize);
+
+        } catch (Exception e) {
+            log.error("DB error", e);
+            throw e;
+        } finally {
+            this.close(con, pstmt, null);
+        }
+    }
+
     private void close(Connection con, Statement stmt, ResultSet rs) {
 
         if (rs != null) {
@@ -105,6 +146,28 @@ public class MemberRepositoryV0 {
             } catch (SQLException e) {
                 log.error("error", e);
             }
+        }
+    }
+
+    public void deleteMember(String memberId) throws SQLException {
+        String sql = """
+                delete from member where member_id = ?
+                """;
+
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            con = this.getConnection();
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, memberId);
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            log.error("DB error ", e);
+            throw e;
+        } finally {
+            this.close(con, pstmt, rs);
         }
     }
 
