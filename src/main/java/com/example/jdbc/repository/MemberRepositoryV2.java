@@ -1,11 +1,13 @@
-package com.example.repository;
+package com.example.jdbc.repository;
 
 
-import com.example.domain.Member;
 import com.example.jdbc.connection.DBConnectionUtil;
+import com.example.jdbc.domain.Member;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.support.JdbcUtils;
 
-import javax.xml.transform.Result;
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.NoSuchElementException;
 
@@ -16,7 +18,11 @@ import java.util.NoSuchElementException;
  * Level - low Level 방법
  */
 @Slf4j
-public class MemberRepositoryV0 {
+@RequiredArgsConstructor
+public class MemberRepositoryV2 {
+
+
+    private final DataSource dataSource;
 
     /**
      * 회원저장
@@ -97,6 +103,35 @@ public class MemberRepositoryV0 {
         }
     }
 
+    public Member findById(Connection conn, String memberId) throws SQLException {
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        String sql = """
+                select * from member where member_id = ?                                        
+                """;
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, memberId);
+
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                Member member = new Member();
+                member.setMemberId(rs.getString("member_Id"));
+                member.setMoney(rs.getInt("money"));
+                return member;
+            } else {
+                throw new NoSuchElementException("해당 멤버가 없습니다.");
+            }
+        } catch (Exception e) {
+            log.error("DB error", e);
+            throw e;
+        } finally {
+            JdbcUtils.closeResultSet(rs);
+            JdbcUtils.closeStatement(pstmt);
+        }
+    }
+
 
     public void update(String member_id, int money) throws SQLException {
         String sql = """
@@ -123,30 +158,35 @@ public class MemberRepositoryV0 {
         }
     }
 
+    public void update(Connection conn, String member_id, int money) throws SQLException {
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        String sql = """
+                  update member set money = ? where member_id = ?            
+                """;
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(2, member_id);
+            pstmt.setInt(1, money);
+
+            int resultRows = pstmt.executeUpdate();
+            log.info("변경된 레코드 : {}", resultRows);
+
+        } catch (SQLException e) {
+            log.error("error", e);
+            throw e;
+        } finally {
+            JdbcUtils.closeStatement(pstmt);
+        }
+
+    }
+
     private void close(Connection con, Statement stmt, ResultSet rs) {
-
-        if (rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                log.error("error", e);
-            }
-        }
-        if (stmt != null) {
-            try {
-                stmt.close();
-            } catch (SQLException e) {
-                log.error("error", e);
-            }
-        }
-
-        if (con != null) {
-            try {
-                con.close();
-            } catch (SQLException e) {
-                log.error("error", e);
-            }
-        }
+        JdbcUtils.closeResultSet(rs);
+        JdbcUtils.closeStatement(stmt);
+        JdbcUtils.closeConnection(con);
     }
 
     public void deleteMember(String memberId) throws SQLException {
@@ -171,7 +211,9 @@ public class MemberRepositoryV0 {
         }
     }
 
-    private Connection getConnection() {
-        return DBConnectionUtil.getConnection();
+    private Connection getConnection() throws SQLException {
+        Connection conn = dataSource.getConnection();
+        log.info("get connection : {} , class : {}", conn, conn.getClass());
+        return conn;
     }
 }
