@@ -7,6 +7,9 @@
 
 # JDBC의 문제점
     1. JDBC를 사용하면 매번 Connection , PreparedStatement , ResultSet등을 이용하기 때문에 반복적이다.
-
+    2. 현재 코드는 JDBC에 너무 의존해 있다.
+    3. 2번의 이유로 인해 나중에 JPA 및 MONGO DB와 같은 다른 DB를 이용할 때 SqlException과 같은 예외처리에서 다량의 오류가 발생한다.
+    4. 서비스 계층은 순수해야되는대 트랜잭션을 적용하면서 JDBC 구현 기술이 누수되었다.
+    5. 반복적인 try catch finally문
 # 해결방안
     1. 커넥션 풀을 이용한다.
