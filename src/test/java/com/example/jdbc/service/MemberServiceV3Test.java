@@ -53,6 +53,11 @@ class MemberServiceV3Test {
         memberServiceV3 = new MemberServiceV3(transactionManager, memberRepositoryV3);
     }
 
+
+    /**
+     * 테스트 메소드 하나가 실행된 후 반드시 실행되는 AfterEach
+     * @throws SQLException
+     */
     @AfterEach
     void after() throws SQLException {
         memberRepositoryV3.deleteMember(MEMBER_A);
@@ -60,6 +65,11 @@ class MemberServiceV3Test {
         memberRepositoryV3.deleteMember(MEMBER_EX);
     }
 
+
+    /**
+     * 이체 서비스 로직 테스트
+     * @throws SQLException
+     */
     @Test
     @DisplayName("정상 이체")
     void accountTransfer() throws SQLException {
