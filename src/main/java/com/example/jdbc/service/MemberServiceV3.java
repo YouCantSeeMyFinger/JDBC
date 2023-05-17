@@ -18,6 +18,7 @@ import java.sql.SQLException;
 @RequiredArgsConstructor
 public class MemberServiceV3 {
     private final PlatformTransactionManager transactionManager;
+    // 더 이상 JDBC에 서비스 로직이 의존하지 않고 대신 PlatformTransactionManager라는 인터페이스 의존한다.
     private final MemberRepositoryV3 memberRepository;
 
     /**
