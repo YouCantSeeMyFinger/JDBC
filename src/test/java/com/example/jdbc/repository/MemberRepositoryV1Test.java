@@ -1,4 +1,4 @@
-package com.example.repository;
+package com.example.jdbc.repository;
 
 import com.example.jdbc.domain.Member;
 import com.example.jdbc.repository.MemberRepositoryV1;

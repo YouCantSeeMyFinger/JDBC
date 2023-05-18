@@ -1,11 +1,9 @@
-package com.example.repository;
+package com.example.jdbc.repository;
 
 import com.example.jdbc.domain.Member;
-import com.example.jdbc.repository.MemberRepositoryV0;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
 

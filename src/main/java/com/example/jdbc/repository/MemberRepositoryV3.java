@@ -162,7 +162,7 @@ public class MemberRepositoryV3 {
         }
     }
 
-    private Connection getConnection() throws SQLException {
+    private Connection getConnection(){
         // 주의 ! 트랜잭션 동기화를 사용하려면 DataSourceUtills를 사용해야한다.
         Connection conn = DataSourceUtils.getConnection(dataSource);
         log.info("get connection : {}", "class : {}", conn, conn.getClass());
