@@ -1,13 +1,12 @@
-package com.example.organized;
-
+package com.example.jdbctemplate.repo.member;
 
 import com.example.jdbc.domain.Member;
-import com.example.organize.repo.IMemberRepository;
-import com.example.organize.repo.MemberRepo;
 import com.example.organize.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.support.AopUtils;
@@ -15,56 +14,49 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static com.example.jdbc.connection.ConnectionConst.*;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @RequiredArgsConstructor
 @Slf4j
-public class MemberServiceTestOraganize {
-
+class MemberRepositoryTest {
+    public static final String MEMBER_A = "memberA";
+    public static final String MEMBER_B = "memberB";
+    public static final String MEMBER_EX = "ex";
     @Autowired
-    private final IMemberRepository memberRepository;
+    private final MemberRepository memberRepository;
     @Autowired
     private final MemberService memberService;
 
-    private static final String MEMBER_A = "memberA";
-    private static final String MEMBER_B = "memberB";
-    private static final String MEMBER_EX = "ex";
-
-
-    /**
-     * 아래의 클래스는 테스트를 위해 만들어놓은 TestConfiguration
-     */
-    @TestConfiguration
-    @RequiredArgsConstructor
-    static class TestConfig {
-        private final DataSource dataSource;
-
-        @Bean
-        IMemberRepository memberRepository() {
-            return new MemberRepo(this.dataSource);
-        }
-
-        @Bean
-        MemberService service() {
-            return new MemberService(this.memberRepository());
-        }
-    }
-
-
-    /**
-     * AfterEach 메소드는 테스트하는 메소드가 한번씩 실행되고 똑같이 한번씩 실행되도록 만든 어노테이션이다. <br>
-     * 테스트할 때마다 memberRepository에 회원이 계속 저장되어있어서 Primary key Violation 때문에 작성
-     */
     @AfterEach
-    public void afterEach() {
+    void after() {
         memberRepository.delete(MEMBER_A);
         memberRepository.delete(MEMBER_B);
         memberRepository.delete(MEMBER_EX);
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+        private final DataSource dataSource;
+
+        public TestConfig(DataSource dataSource) {
+            this.dataSource = dataSource;
+        }
+
+        @Bean
+        IMemberRepository memberRepository() {
+            return new MemberRepository(dataSource); //단순 예외 변환
+        }
+
+        @Bean
+        com.example.jdbctemplate.service.MemberService memberService() {
+            return new com.example.jdbctemplate.service.MemberService(this.memberRepository());
+        }
     }
 
     @Test
