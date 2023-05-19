@@ -1,6 +1,6 @@
 package com.example.organize.cumstomexception;
 
-public class blackListException extends RuntimeException {
+public class blackListException extends MyDbException {
     public blackListException() {
         super();
     }
@@ -16,5 +16,4 @@ public class blackListException extends RuntimeException {
     public blackListException(Throwable cause) {
         super(cause);
     }
-
 }

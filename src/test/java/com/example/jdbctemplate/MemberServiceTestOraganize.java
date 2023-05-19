@@ -1,14 +1,12 @@
 package com.example.organized;
 
 
-import com.example.jdbc.connection.ConnectionConst;
 import com.example.jdbc.domain.Member;
 import com.example.organize.repo.IMemberRepository;
 import com.example.organize.repo.MemberRepo;
 import com.example.organize.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,19 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.jdbc.support.SQLExceptionTranslator;
 
 import javax.sql.DataSource;
 
-import static com.example.jdbc.connection.ConnectionConst.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
 @RequiredArgsConstructor
 @Slf4j
-public class MemberServiceTest {
+public class MemberServiceTestOraganize {
 
     @Autowired
     private final IMemberRepository memberRepository;

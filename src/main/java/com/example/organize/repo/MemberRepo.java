@@ -5,8 +5,11 @@ import com.example.jdbc.domain.Member;
 import com.example.organize.cumstomexception.MyDbException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
+import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -16,26 +19,29 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
 
-@Slf4j
-@Repository
-@RequiredArgsConstructor
 
 /**
- *
  * SqlException으로 인해 JDBC에 의존하는 상황<br>
  * throw new RuntimeException(e) => SqlException의 stackTrace를 RuntimeException에 넘겨주었고 런타임 Exception이 발생<br>
  * 위의 방법대로 sqlException을 처리함으로써 SqlException이 RuntimeException으로 치환되었고 RuntimeException을 뱉어낼 때 <br>
  * Caused By절에 SqlException의 문제로 인해서 RuntimeException이 발생했다 라고 알려준다.<br>
  * 이렇게 코드를 짜는 이유는 SqlException이 각 메소드마다 붙는다면 JDBC에 의존하는 상황이 연출이 되기 때문이다.<br>
  * 추후에 JPA 혹은 MongoDB와 같이 다른 DB로 변경해야하는 경우 SqlExceptino이 붙은 메소드를 하나하나 다 바꾸어 줘야하기 때문이다.<br>
- *
+ * <p>
  * 정리 : 예외 누수 문제를 해결했다.
  * 방법 : checkException을 RuntimeException으로 감싸고 Caused By 로 SqlException때문에 발생한 예외라고 선언
- *
  */
+@Slf4j
+@Repository
 public class MemberRepo implements IMemberRepository {
 
-    public final DataSource dataSource;
+    private final DataSource dataSource;
+    private final SQLExceptionTranslator sqlExceptionTranslator;
+
+    public MemberRepo(DataSource dataSource) {
+        this.dataSource = dataSource;
+        this.sqlExceptionTranslator = new SQLErrorCodeSQLExceptionTranslator(dataSource);
+    }
 
     /**
      * 회원저장 메소드 <br><br>
@@ -63,8 +69,7 @@ public class MemberRepo implements IMemberRepository {
             pstmt.executeUpdate();
             return member;
         } catch (SQLException e) {
-            log.error("DB error ", e);
-            throw new MyDbException(e);
+            throw this.sqlExceptionTranslator.translate("save", sql, e);
         } finally {
             this.close(con, pstmt, null);
         }
@@ -72,6 +77,7 @@ public class MemberRepo implements IMemberRepository {
 
     /**
      * 회원의 id찾기 메소드
+     *
      * @param memberId
      * @return
      */
@@ -102,7 +108,7 @@ public class MemberRepo implements IMemberRepository {
                 throw new NoSuchElementException("해당 아이디는 존재하지 않습니다.");
             }
         } catch (SQLException e) {
-            throw new MyDbException(e);
+            throw this.sqlExceptionTranslator.translate("findById", sql, e);
         } finally {
             this.close(con, pstmt, rs);
         }
@@ -110,6 +116,7 @@ public class MemberRepo implements IMemberRepository {
 
     /**
      * 회원의 돈 수정 메소드
+     *
      * @param memberId
      * @param money
      */
@@ -128,8 +135,7 @@ public class MemberRepo implements IMemberRepository {
             pstmt.executeUpdate();
 
         } catch (SQLException e) {
-            log.error("DB error", e);
-            throw new MyDbException(e);
+            throw this.sqlExceptionTranslator.translate("update", sql, e);
         } finally {
             this.close(con, pstmt, null);
         }
@@ -137,6 +143,7 @@ public class MemberRepo implements IMemberRepository {
 
     /**
      * 회원삭제 메소드
+     *
      * @param memberId
      */
     @Override
@@ -152,8 +159,7 @@ public class MemberRepo implements IMemberRepository {
             pstmt.setString(1, memberId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            log.error("DB error", e);
-            throw new MyDbException(e);
+            throw this.sqlExceptionTranslator.translate("delete", sql, e);
         } finally {
             this.close(con, pstmt, null);
         }
